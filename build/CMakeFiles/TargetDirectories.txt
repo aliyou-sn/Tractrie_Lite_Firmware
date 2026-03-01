@@ -470,6 +470,7 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_gdbstub/CMakeFi
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_gdbstub/CMakeFiles/install.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_gdbstub/CMakeFiles/install/local.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_gdbstub/CMakeFiles/install/strip.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/bt/CMakeFiles/__idf_bt.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/bt/CMakeFiles/edit_cache.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/bt/CMakeFiles/rebuild_cache.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/bt/CMakeFiles/list_install_components.dir
@@ -911,6 +912,13 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/call_service/CMakeF
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/call_service/CMakeFiles/install.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/call_service/CMakeFiles/install/local.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/call_service/CMakeFiles/install/strip.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/__idf_obd_service.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/edit_cache.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/rebuild_cache.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/list_install_components.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/install.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/install/local.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/install/strip.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/CMakeFiles/__idf_mqtt_service.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/CMakeFiles/edit_cache.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/CMakeFiles/rebuild_cache.dir

@@ -4,6 +4,7 @@
 #include "gnss_service.h"
 #include "storage_nvs.h"
 #include "call_service.h"
+#include "obd_service.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "driver/i2c.h"
@@ -839,12 +840,36 @@ static void mqtt_task(void *arg)
             int rpm = 0;
             float throttle = 0.0f;
             float coolant_temp = 0.0f;
+            const char *obd_vin = "";
+            bool obd_connected = false;
+            bool obd_stale = true;
+            int64_t obd_last_update_ms = 0;
             float batt_v = 0.0f;
             const char *ignition_state = "UNKNOWN";
             call_service_state_t call_state = call_service_get_state();
             int voice_duration = call_service_get_duration_s();
             char fail_reason[32] = {0};
             call_service_get_fail_reason(fail_reason, sizeof(fail_reason));
+
+            obd_data_t obd = {0};
+            if (obd_service_get_latest(&obd)) {
+                obd_connected = obd.connected;
+                obd_last_update_ms = obd.last_update_ms;
+                if (obd.connected) {
+                    obd_speed = obd.speed_kph;
+                    rpm = obd.rpm;
+                    throttle = obd.throttle_pct;
+                    coolant_temp = obd.coolant_temp_c;
+                    if (obd.vin_valid && obd.vin[0]) {
+                        obd_vin = obd.vin;
+                    }
+                }
+                if (obd.last_update_ms > 0) {
+                    int64_t now_ms = esp_timer_get_time() / 1000;
+                    int64_t age_ms = now_ms - obd.last_update_ms;
+                    obd_stale = (age_ms > 15000);
+                }
+            }
 
             float batt_i2c = 0.0f;
             float batt_adc = 0.0f;
@@ -866,7 +891,7 @@ static void mqtt_task(void *arg)
                      "\"net\":{\"rssi\":%d,\"operator\":\"%s\"},"
                      "\"gps\":{\"lat\":%.6f,\"lon\":%.6f,\"speed\":%.2f},"
                      "\"imu_summary\":{\"accel_rms\":%.3f,\"tilt\":%.2f},"
-                     "\"obd\":{\"speed\":%.2f,\"rpm\":%d,\"throttle\":%.2f,\"coolant_temp\":%.2f},"
+                     "\"obd\":{\"speed\":%.2f,\"rpm\":%d,\"throttle\":%.2f,\"coolant_temp\":%.2f,\"vin\":\"%s\",\"connected\":%s,\"stale\":%s,\"last_update_ms\":%lld},"
                      "\"power\":{\"batt_v\":%.2f,\"ignition_state\":\"%s\"},"
                      "\"voice\":{\"call_state\":\"%s\",\"duration\":%d%s%s%s}"
                      "}",
@@ -876,7 +901,10 @@ static void mqtt_task(void *arg)
                      operator_name,
                      fix.lat, fix.lon, fix.speed_kph,
                      accel_rms, tilt,
-                     obd_speed, rpm, throttle, coolant_temp,
+                     obd_speed, rpm, throttle, coolant_temp, obd_vin,
+                     obd_connected ? "true" : "false",
+                     obd_stale ? "true" : "false",
+                     (long long)obd_last_update_ms,
                      batt_v, ignition_state,
                      call_state_str(call_state), voice_duration,
                      fail_reason[0] ? ",\"fail_reason\":\"" : "",

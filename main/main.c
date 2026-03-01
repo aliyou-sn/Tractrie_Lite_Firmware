@@ -8,6 +8,7 @@
 #include "storage_nvs.h"
 #include "mqtt_service.h"
 #include "call_service.h"
+#include "obd_service.h"
 
 static const char *TAG = "app_main";
 static const char *CONTROL_CENTER_NUMBER = "+2349073283370";
@@ -103,6 +104,14 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(call_service_init(&call_cfg));
     call_service_start();
+
+    obd_service_config_t obd_cfg = {
+        .target_mac = NULL,   // Set dongle MAC "AA:BB:CC:DD:EE:FF" to lock to one adapter.
+        .fast_interval_ms = 700,
+        .medium_interval_ms = 1800,
+    };
+    ESP_ERROR_CHECK(obd_service_init(&obd_cfg));
+    obd_service_start();
 
 #if ENABLE_MQTT
     mqtt_service_config_t mqtt_cfg = {

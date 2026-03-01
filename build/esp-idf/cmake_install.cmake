@@ -604,6 +604,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/cmake_install.cmake")
 endif()
 

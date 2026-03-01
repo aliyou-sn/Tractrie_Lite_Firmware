@@ -39,6 +39,7 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_app_format/libe
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_bootloader_format/libesp_bootloader_format.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_mm/libesp_mm.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_gdbstub/libesp_gdbstub.a
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_coex/libesp_coex.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/driver/libdriver.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_driver_pcnt/libesp_driver_pcnt.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_driver_gptimer/libesp_driver_gptimer.a
@@ -67,7 +68,6 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_wifi/libesp_wif
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_phy/libesp_phy.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_netif/libesp_netif.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/wpa_supplicant/libwpa_supplicant.a
-C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_coex/libesp_coex.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_https_ota/libesp_https_ota.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_security/libesp_security.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/pthread/libpthread.a
@@ -110,6 +110,7 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_coex/libesp_coe
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_wifi/libesp_wifi.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_driver_spi/libesp_driver_spi.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_gdbstub/libesp_gdbstub.a
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/bt/libbt.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/unity/libunity.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/cmock/libcmock.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/unity/libunity.a
@@ -134,6 +135,7 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_driver_cam/libe
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_driver_touch_sens/libesp_driver_touch_sens.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_eth/libesp_eth.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_hid/libesp_hid.a
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/bt/libbt.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/tcp_transport/libtcp_transport.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_http_client/libesp_http_client.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/esp_http_server/libesp_http_server.a
@@ -172,9 +174,11 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/storage_nvs/libstor
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/http_provisioning/libhttp_provisioning.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/storage_nvs/libstorage_nvs.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/call_service/libcall_service.a
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/libobd_service.a
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/call_service/libcall_service.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/libmqtt_service.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/gnss_service/libgnss_service.a
-C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/call_service/libcall_service.a
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/libobd_service.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/main/libmain.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/http_provisioning/libhttp_provisioning.a
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/libmqtt_service.a
