@@ -5,6 +5,7 @@
 #include "storage_nvs.h"
 #include "call_service.h"
 #include "obd_service.h"
+#include "power_state_manager.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "driver/i2c.h"
@@ -456,6 +457,23 @@ static bool wait_ok_or_error_locked(int timeout_ms)
     return false;
 }
 
+static void apply_pending_csclk_locked(void)
+{
+    int target = power_state_manager_get_modem_csclk_target();
+    int applied = power_state_manager_get_modem_csclk_applied();
+    if (target == applied) return;
+    if (target < 0 || target > 2) return;
+
+    char cmd[24];
+    snprintf(cmd, sizeof(cmd), "AT+CSCLK=%d\r\n", target);
+    if (modem_at_cmd(cmd, "OK", 4000)) {
+        power_state_manager_mark_modem_csclk_applied(target);
+        ESP_LOGI(TAG, "Applied CSCLK=%d", target);
+    } else {
+        ESP_LOGW(TAG, "CSCLK apply failed (target=%d)", target);
+    }
+}
+
 static void power_inputs_init_once(void)
 {
     if (s_power_inited) return;
@@ -518,6 +536,16 @@ static bool read_vbat_divider_v(float *out_v)
     return true;
 }
 
+static const char *read_ignition_state_str(void)
+{
+    return power_state_manager_is_ignition_on() ? "ON" : "OFF";
+}
+
+static bool ignition_is_on(const char *ignition_state)
+{
+    return ignition_state && strcmp(ignition_state, "ON") == 0;
+}
+
 static void mqtt_cleanup_session_locked(void)
 {
     // Per app note, release flow should be DISC -> REL -> STOP. Ignore failures.
@@ -549,6 +577,7 @@ static bool mqtt_prepare_data_network(void)
 {
     char cmd[160];
     char line[128];
+    apply_pending_csclk_locked();
     if (!modem_at_cmd("AT\r\n", "OK", 2000)) return false;
     if (!modem_at_cmd("AT+CPIN?\r\n", "READY", 5000)) return false;
     if (!modem_at_cmd("AT+CSQ\r\n", "OK", 3000)) return false;
@@ -601,6 +630,7 @@ static bool mqtt_connect(const char *token)
     ESP_LOGI(TAG, "MQTT broker host=%s port=%d", host, s_cfg.broker_port);
 
     bool start_ok = false;
+    apply_pending_csclk_locked();
     // Always clean stale session before start.
     mqtt_cleanup_session_locked();
 
@@ -825,6 +855,7 @@ static void mqtt_task(void *arg)
 
         ESP_LOGI(TAG, "MQTT connected");
         s_whitelist_dirty = true;
+        int prev_ign_on = -1;
 
         while (1) {
             gnss_fix_t fix = {0};
@@ -845,7 +876,16 @@ static void mqtt_task(void *arg)
             bool obd_stale = true;
             int64_t obd_last_update_ms = 0;
             float batt_v = 0.0f;
-            const char *ignition_state = "UNKNOWN";
+            const char *ignition_state = read_ignition_state_str();
+            bool ign_on = ignition_is_on(ignition_state);
+            power_state_t pstate = power_state_manager_get_state();
+            const char *power_state_str = power_state_manager_state_str(pstate);
+            int publish_period_s = ign_on ? s_cfg.publish_period_on_s : s_cfg.publish_period_off_s;
+            if (publish_period_s <= 0) publish_period_s = s_cfg.publish_period_s;
+            if (prev_ign_on != (int)ign_on) {
+                ESP_LOGI(TAG, "Ignition state changed: %s (publish every %ds)", ignition_state, publish_period_s);
+                prev_ign_on = (int)ign_on;
+            }
             call_service_state_t call_state = call_service_get_state();
             int voice_duration = call_service_get_duration_s();
             char fail_reason[32] = {0};
@@ -892,7 +932,7 @@ static void mqtt_task(void *arg)
                      "\"gps\":{\"lat\":%.6f,\"lon\":%.6f,\"speed\":%.2f},"
                      "\"imu_summary\":{\"accel_rms\":%.3f,\"tilt\":%.2f},"
                      "\"obd\":{\"speed\":%.2f,\"rpm\":%d,\"throttle\":%.2f,\"coolant_temp\":%.2f,\"vin\":\"%s\",\"connected\":%s,\"stale\":%s,\"last_update_ms\":%lld},"
-                     "\"power\":{\"batt_v\":%.2f,\"ignition_state\":\"%s\"},"
+                     "\"power\":{\"batt_v\":%.2f,\"ignition_state\":\"%s\",\"state\":\"%s\"},"
                      "\"voice\":{\"call_state\":\"%s\",\"duration\":%d%s%s%s}"
                      "}",
                      (long long)ts_utc,
@@ -905,7 +945,7 @@ static void mqtt_task(void *arg)
                      obd_connected ? "true" : "false",
                      obd_stale ? "true" : "false",
                      (long long)obd_last_update_ms,
-                     batt_v, ignition_state,
+                     batt_v, ignition_state, power_state_str,
                      call_state_str(call_state), voice_duration,
                      fail_reason[0] ? ",\"fail_reason\":\"" : "",
                      fail_reason[0] ? fail_reason : "",
@@ -915,6 +955,7 @@ static void mqtt_task(void *arg)
                 break;
             }
             mqtt_drain_async_locked(150);
+            apply_pending_csclk_locked();
 
             rpc_cmd_t rpc = {0};
             while (xQueueReceive(s_rpc_q, &rpc, 0) == pdTRUE) {
@@ -939,7 +980,19 @@ static void mqtt_task(void *arg)
             }
 
             ESP_LOGI(TAG, "Published: %s", payload);
-            vTaskDelay(pdMS_TO_TICKS(s_cfg.publish_period_s * 1000));
+
+            // Sleep in short slices so ignition OFF->ON can trigger immediate publish.
+            bool published_when_ign_on = ign_on;
+            int wait_s = publish_period_s;
+            for (int slept = 0; slept < wait_s; slept++) {
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                const char *ign_now_str = read_ignition_state_str();
+                bool ign_now = ignition_is_on(ign_now_str);
+                if (!published_when_ign_on && ign_now) {
+                    ESP_LOGI(TAG, "Ignition turned ON, publishing immediately");
+                    break;
+                }
+            }
         }
 
         if (modem_at_lock(5000)) {
@@ -956,6 +1009,8 @@ esp_err_t mqtt_service_init(const mqtt_service_config_t *cfg)
     }
     s_cfg = *cfg;
     if (s_cfg.publish_period_s <= 0) s_cfg.publish_period_s = 30;
+    if (s_cfg.publish_period_on_s <= 0) s_cfg.publish_period_on_s = s_cfg.publish_period_s;
+    if (s_cfg.publish_period_off_s <= 0) s_cfg.publish_period_off_s = s_cfg.publish_period_s;
 
     // Route MQTT RX URCs through one parser regardless of which task is reading AT lines.
     modem_urc_register("+CMQTTRXSTART:", mqtt_urc_line_handler, NULL);

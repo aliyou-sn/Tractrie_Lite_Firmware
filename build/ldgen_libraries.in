@@ -176,9 +176,11 @@ $<TARGET_FILE:__idf_storage_nvs>
 $<TARGET_FILE:idf::call_service>
 $<TARGET_FILE:idf::obd_service>
 $<TARGET_FILE:__idf_call_service>
+$<TARGET_FILE:idf::power_state_manager>
 $<TARGET_FILE:idf::mqtt_service>
 $<TARGET_FILE:__idf_gnss_service>
 $<TARGET_FILE:__idf_obd_service>
+$<TARGET_FILE:__idf_power_state_manager>
 $<TARGET_FILE:idf::main>
 $<TARGET_FILE:__idf_http_provisioning>
 $<TARGET_FILE:__idf_mqtt_service>

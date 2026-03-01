@@ -919,6 +919,13 @@ C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFi
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/install.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/install/local.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/obd_service/CMakeFiles/install/strip.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/power_state_manager/CMakeFiles/__idf_power_state_manager.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/power_state_manager/CMakeFiles/edit_cache.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/power_state_manager/CMakeFiles/rebuild_cache.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/power_state_manager/CMakeFiles/list_install_components.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/power_state_manager/CMakeFiles/install.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/power_state_manager/CMakeFiles/install/local.dir
+C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/power_state_manager/CMakeFiles/install/strip.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/CMakeFiles/__idf_mqtt_service.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/CMakeFiles/edit_cache.dir
 C:/Users/DELL/Documents/Tractrie_Lite_Firmware/build/esp-idf/mqtt_service/CMakeFiles/rebuild_cache.dir

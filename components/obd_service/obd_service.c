@@ -25,6 +25,7 @@ static const char *TAG = "obd_service";
 static obd_service_config_t s_cfg;
 static bool s_inited;
 static bool s_started;
+static volatile bool s_enabled = true;
 static obd_data_t s_data;
 
 #if CONFIG_BT_ENABLED && CONFIG_BT_NIMBLE_ENABLED
@@ -56,6 +57,7 @@ static int64_t s_next_scan_at_ms;
 
 static void start_scan(void);
 static void schedule_scan_retry(void);
+static void stop_ble_runtime(void);
 
 static bool is_hex_char(char c)
 {
@@ -106,6 +108,18 @@ static void mark_disconnected(void)
     s_service_found = false;
     s_rx_len = 0;
     schedule_scan_retry();
+}
+
+static void stop_ble_runtime(void)
+{
+    if (s_scan_active) {
+        ble_gap_disc_cancel();
+        s_scan_active = false;
+    }
+    if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE) {
+        ble_gap_terminate(s_conn_handle, BLE_ERR_REM_USER_CONN_TERM);
+    }
+    mark_disconnected();
 }
 
 static void vin_reset(void)
@@ -417,6 +431,7 @@ static int gap_event_cb(struct ble_gap_event *event, void *arg)
 
 static void start_scan(void)
 {
+    if (!s_enabled) return;
     if (s_scan_active) return;
     if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE) return;
     int64_t now_ms = esp_timer_get_time() / 1000;
@@ -444,7 +459,7 @@ static void schedule_scan_retry(void)
 static void on_sync(void)
 {
     if (ble_hs_id_infer_auto(0, &s_own_addr_type) != 0) return;
-    start_scan();
+    if (s_enabled) start_scan();
 }
 
 static void on_reset(int reason)
@@ -469,6 +484,10 @@ static void obd_poll_task(void *arg)
     uint8_t medium_index = 0;
 
     while (1) {
+        if (!s_enabled) {
+            vTaskDelay(pdMS_TO_TICKS(300));
+            continue;
+        }
         if (!s_obd_ready) {
             vTaskDelay(pdMS_TO_TICKS(200));
             continue;
@@ -537,7 +556,11 @@ static void obd_link_task(void *arg)
 {
     (void)arg;
     while (1) {
-        if (s_conn_handle == BLE_HS_CONN_HANDLE_NONE) {
+        if (!s_enabled) {
+            if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE || s_scan_active) {
+                stop_ble_runtime();
+            }
+        } else if (s_conn_handle == BLE_HS_CONN_HANDLE_NONE) {
             start_scan();
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -550,7 +573,9 @@ esp_err_t obd_service_init(const obd_service_config_t *cfg)
 {
     if (s_inited) return ESP_OK;
     memset(&s_data, 0, sizeof(s_data));
+#if CONFIG_BT_ENABLED && CONFIG_BT_NIMBLE_ENABLED
     vin_reset();
+#endif
     s_cfg = (obd_service_config_t) {
         .target_mac = NULL,
         .fast_interval_ms = 600,
@@ -602,4 +627,26 @@ bool obd_service_get_latest(obd_data_t *out)
     if (!out) return false;
     *out = s_data;
     return s_data.valid;
+}
+
+void obd_service_set_enabled(bool enabled)
+{
+    s_enabled = enabled;
+#if CONFIG_BT_ENABLED && CONFIG_BT_NIMBLE_ENABLED
+    if (!enabled) {
+        stop_ble_runtime();
+        ESP_LOGI(TAG, "OBD service disabled");
+    } else {
+        s_scan_backoff_ms = 1000;
+        s_next_scan_at_ms = 0;
+        ESP_LOGI(TAG, "OBD service enabled");
+    }
+#else
+    (void)enabled;
+#endif
+}
+
+bool obd_service_is_enabled(void)
+{
+    return s_enabled;
 }

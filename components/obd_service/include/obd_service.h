@@ -30,6 +30,8 @@ typedef struct {
 esp_err_t obd_service_init(const obd_service_config_t *cfg);
 void obd_service_start(void);
 bool obd_service_get_latest(obd_data_t *out);
+void obd_service_set_enabled(bool enabled);
+bool obd_service_is_enabled(void);
 
 #ifdef __cplusplus
 }

@@ -9,11 +9,55 @@
 #include "mqtt_service.h"
 #include "call_service.h"
 #include "obd_service.h"
+#include "power_state_manager.h"
 
 static const char *TAG = "app_main";
 static const char *CONTROL_CENTER_NUMBER = "+2349073283370";
 // Set to 0 while validating GSM voice-only milestone (cloud independent).
 #define ENABLE_MQTT 1
+
+static void power_policy_task(void *arg)
+{
+    (void)arg;
+    power_state_t prev = (power_state_t)-1;
+    bool prev_call_busy = false;
+    int prev_csclk_target = -1;
+
+    while (1) {
+        power_state_t s = power_state_manager_get_state();
+        if (s != prev) {
+            ESP_LOGI(TAG, "Power policy state=%s", power_state_manager_state_str(s));
+            // Park sleep: stop BLE OBD to save power. Resume on wake/drive.
+            if (s == POWER_STATE_PARK_SLEEP) {
+                obd_service_set_enabled(false);
+            } else {
+                obd_service_set_enabled(true);
+            }
+            prev = s;
+        }
+
+        call_service_state_t c = call_service_get_state();
+        bool call_busy = (c == CALL_STATE_DIALING || c == CALL_STATE_RINGING || c == CALL_STATE_ACTIVE);
+
+        // Keep modem reachable for voice:
+        // - Use CSCLK=2 only in PARK_SLEEP when no active/ringing/dialing call.
+        // - Use CSCLK=0 otherwise.
+        int want_csclk = (s == POWER_STATE_PARK_SLEEP && !call_busy) ? 2 : 0;
+
+        if (call_busy != prev_call_busy) {
+            ESP_LOGI(TAG, "Call busy=%s", call_busy ? "true" : "false");
+            prev_call_busy = call_busy;
+        }
+
+        if (want_csclk != prev_csclk_target) {
+            power_state_manager_set_modem_csclk_target(want_csclk);
+            ESP_LOGI(TAG, "Modem low-power policy target: CSCLK=%d", want_csclk);
+            prev_csclk_target = want_csclk;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
 
 static void log_whitelist_numbers_on_boot(void)
 {
@@ -105,6 +149,15 @@ void app_main(void)
     ESP_ERROR_CHECK(call_service_init(&call_cfg));
     call_service_start();
 
+    power_state_manager_config_t pwr_cfg = {
+        .ignition_gpio_num = 5,
+        .ignition_active_high = true,
+        .park_awake_timeout_s = 120,
+        .debounce_ms = 300,
+    };
+    ESP_ERROR_CHECK(power_state_manager_init(&pwr_cfg));
+    power_state_manager_start();
+
     obd_service_config_t obd_cfg = {
         .target_mac = NULL,   // Set dongle MAC "AA:BB:CC:DD:EE:FF" to lock to one adapter.
         .fast_interval_ms = 700,
@@ -112,6 +165,7 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(obd_service_init(&obd_cfg));
     obd_service_start();
+    xTaskCreate(power_policy_task, "power_policy", 3072, NULL, 6, NULL);
 
 #if ENABLE_MQTT
     mqtt_service_config_t mqtt_cfg = {
@@ -122,7 +176,9 @@ void app_main(void)
         // .broker_host = "mqtt.thingsboard.cloud",
         .broker_port = 1883,
         .fallback_token = "KTQ8hXjWITMBx2FPtAA6",
-        .publish_period_s = 15,
+        .publish_period_s = 30,
+        .publish_period_on_s = 30,
+        .publish_period_off_s = 300,
     };
     ESP_ERROR_CHECK(mqtt_service_init(&mqtt_cfg));
     mqtt_service_start();
