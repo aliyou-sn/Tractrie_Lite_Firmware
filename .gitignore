@@ -1,0 +1,13 @@
+# ESP-IDF build directory
+build/
+
+# Generated configuration files
+sdkconfig
+sdkconfig.old
+
+# Component manager and dependencies
+managed_components/
+dependencies.lock
+
+# Editor/IDE specific files
+.vscode/
